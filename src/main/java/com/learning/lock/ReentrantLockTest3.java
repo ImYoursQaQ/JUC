@@ -1,5 +1,7 @@
 package com.learning.lock;
 
+import java.util.concurrent.locks.ReentrantLock;
+
 /**
  * reentrantlock用于替代synchronized
  *  * 由于m1锁定this,只有m1执行完毕的时候,m2才能执行
@@ -13,8 +15,29 @@ package com.learning.lock;
  *  *
  *  * 使用ReentrantLock还可以调用lockInterruptibly方法，可以对线程interrupt方法做出响应，
  *  * 在一个线程等待锁的过程中，可以被打断
+ *  *
+ *  * ReentrantLock还可以指定为公平锁
  */
-public class ReentrantLockTest2 {
+public class ReentrantLockTest3 extends Thread {
 
+    private static ReentrantLock reentrantLock = new ReentrantLock(false);
 
+    public void run() {
+        for(int i = 0; i < 100; i ++) {
+            try{
+                reentrantLock.lock();
+                System.out.println(Thread.currentThread().getName() + "获得锁");
+            } catch (Exception e) {
+                e.printStackTrace();
+            } finally{
+                reentrantLock.unlock();
+            }
+        }
+    }
+
+    public static void main(String[] args) {
+        ReentrantLockTest3 reentrantLockTest2 = new ReentrantLockTest3();
+        new Thread(reentrantLockTest2).start();
+        new Thread(reentrantLockTest2).start();
+    }
 }
