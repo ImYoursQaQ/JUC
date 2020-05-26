@@ -22,6 +22,7 @@ public class ReentrantLockTest3 extends Thread {
 
     private static ReentrantLock reentrantLock = new ReentrantLock(false);
 
+    @Override
     public void run() {
         for(int i = 0; i < 100; i ++) {
             try{

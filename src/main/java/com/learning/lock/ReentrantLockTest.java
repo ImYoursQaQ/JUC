@@ -17,7 +17,7 @@ public class ReentrantLockTest {
     private ReentrantLock reentrantLock = new ReentrantLock();
 
     public void m1() {
-        try{
+        try {
             reentrantLock.lock();
             System.out.println("m1 start ...");
             for(int i = 0; i < 10; i ++) {
