@@ -20,6 +20,22 @@ public class PhaserTest {
 	class MarriagePhaser extends Phaser {
 		@Override
 		protected boolean onAdvance(int phase, int registeredParties) {
+			switch (phase) {
+				case 0 :
+					System.out.println();
+					return false;
+				case 1 :
+					System.out.println();
+					return false;
+				case 2 :
+					System.out.println();
+					return false;
+				case 3 :
+					System.out.println();
+					return true;
+				default:
+					return true;
+			}
 			return super.onAdvance(phase, registeredParties);
 		}
 	}
@@ -39,16 +55,34 @@ public class PhaserTest {
 		}
 
 		public void eat() {
-
+			milliSleep(r.nextInt(1000));
+			System.out.printf("%s 吃完!\n", name);
+			phaser.arriveAndAwaitAdvance();
 		}
 
 		public void leave() {
+			milliSleep(r.nextInt(1000));
+			System.out.printf("%s 离开！\n", name);
+			phaser.arriveAndAwaitAdvance();
+		}
 
+		public void hug() {
+			if(name.equals("新郎") || name.equals("新娘")) {
+				milliSleep(r.nextInt(1000));
+				System.out.printf("%s 洞房！\n", name);
+				phaser.arriveAndAwaitAdvance();
+			} else {
+				phaser.arriveAndDeregister();
+				//phaser.register();
+			}
 		}
 
 		@Override
 		public void run() {
-
+			arrive();
+			eat();
+			leave();
+			hug();
 		}
 	}
 }
