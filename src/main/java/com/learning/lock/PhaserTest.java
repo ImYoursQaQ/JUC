@@ -6,8 +6,8 @@ import java.util.concurrent.TimeUnit;
 
 public class PhaserTest {
 
-	private Random r = new Random();
-	private MarriagePhaser phaser = new MarriagePhaser();
+	private static Random r = new Random();
+	private static MarriagePhaser phaser = new MarriagePhaser();
 
 	public static void milliSleep(int milli) {
 		try {
@@ -17,30 +17,44 @@ public class PhaserTest {
 		}
 	}
 
-	class MarriagePhaser extends Phaser {
+	public static void main(String[] args) {
+		phaser.bulkRegister(7);
+		for(int i=0; i<5; i++) {
+
+			new Thread(new Person("p" + i)).start();
+		}
+
+		new Thread(new Person("新郎")).start();
+		new Thread(new Person("新娘")).start();
+	}
+
+	static class MarriagePhaser extends Phaser {
 		@Override
 		protected boolean onAdvance(int phase, int registeredParties) {
 			switch (phase) {
 				case 0 :
+					System.out.println("所有人到齐了！" + registeredParties);
 					System.out.println();
 					return false;
 				case 1 :
+					System.out.println("所有人吃完了！" + registeredParties);
 					System.out.println();
 					return false;
 				case 2 :
+					System.out.println("所有人离开了！" + registeredParties);
 					System.out.println();
 					return false;
 				case 3 :
+					System.out.println("婚礼结束！新郎新娘抱抱！" + registeredParties);
 					System.out.println();
 					return true;
 				default:
 					return true;
 			}
-			return super.onAdvance(phase, registeredParties);
 		}
 	}
 
-	class Person implements Runnable {
+	static class Person implements Runnable {
 
 		private String name;
 
@@ -52,6 +66,7 @@ public class PhaserTest {
 			milliSleep(r.nextInt(1000));
 			System.out.printf("%s 到达现场！\n", name);
 			phaser.arriveAndAwaitAdvance();
+			System.out.printf("%s 等待！\n", name);
 		}
 
 		public void eat() {
