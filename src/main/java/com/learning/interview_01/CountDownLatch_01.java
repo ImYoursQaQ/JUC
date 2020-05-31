@@ -2,6 +2,8 @@ package com.learning.interview_01;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 /**
  * 曾经的面试题：（淘宝？）
@@ -19,8 +21,15 @@ import java.util.List;
  *  *
  *  * notify之后，t1必须释放锁，t2退出后，也必须notify，通知t1继续执行
  *  * 整个通信过程比较繁琐
+ *  *
+ *  * 使用Latch（门闩）替代wait notify来进行通知
+ *  * 好处是通信方式简单，同时也可以指定等待时间
+ *  * 使用await和countdown方法替代wait和notify
+ *  * CountDownLatch不涉及锁定，当count的值为零时当前线程继续运行
+ *  * 当不涉及同步，只是涉及线程通信的时候，用synchronized + wait/notify就显得太重了
+ *  * 这时应该考虑countdownlatch/cyclicbarrier/semaphore
  */
-public class NotifyFreeLock {
+public class CountDownLatch_01 {
 
     //添加volatile，使t2能够得到通知
     volatile List list = new ArrayList<>();
@@ -34,44 +43,39 @@ public class NotifyFreeLock {
     }
 
     public static void main(String[] args) {
-        NotifyFreeLock notifyFreeLock = new NotifyFreeLock();
-        final Object lock = new Object();
+        CountDownLatch_01 countDownLatch_01 = new CountDownLatch_01();
+        CountDownLatch latch = new CountDownLatch(1);
+        CountDownLatch latch1 = new CountDownLatch(1);
         new Thread(() -> {
-            synchronized (lock) {
-                System.out.println("t2启动");
-                if(notifyFreeLock.size() != 5) {
-                    try {
-                        lock.wait();
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
+            System.out.println("t2启动");
+            try {
+                if (countDownLatch_01.size() != 5) {
+                    latch.await();
                 }
-                System.out.println("t2 结束");
-                lock.notify();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
             }
+            System.out.println("t2 结束");
+            latch1.countDown();
         }, "t2").start();
         new Thread(() -> {
-            synchronized (lock) {
-                for (int i = 0; i < 10; i++) {
-                    if (i == 5) {
-                        lock.notify();
-                    }
+            for (int i = 0; i < 10; i++) {
+                if (i == 5) {
+                    latch.countDown();
                     try {
-                        lock.wait();
+                        latch1.await();
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
-                    notifyFreeLock.add(new Object());
-                    System.out.println("add " + i);
-                    /*try {
-                        TimeUnit.SECONDS.sleep(1);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }*/
                 }
+                /*try {
+                    TimeUnit.SECONDS.sleep(1);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }*/
+                countDownLatch_01.add(new Object());
+                System.out.println("add " + i);
             }
         }, "t1").start();
-
-
     }
 }

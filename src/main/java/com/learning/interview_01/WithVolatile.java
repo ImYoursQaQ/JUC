@@ -1,5 +1,10 @@
 package com.learning.interview_01;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.concurrent.TimeUnit;
+
 /**
  * 曾经的面试题：（淘宝？）
  *  * 实现一个容器，提供两个方法，add，size
@@ -10,4 +15,40 @@ package com.learning.interview_01;
  *  * 该怎么做呢？
  */
 public class WithVolatile {
+
+    //添加volatile，使t2能够得到通知
+    //volatile List list = new ArrayList<>();
+    volatile List list = Collections.synchronizedList(new ArrayList<>());
+
+    public void add(Object o) {
+        list.add(o);
+    }
+
+    public int size() {
+        return list.size();
+    }
+
+    public static void main(String[] args) {
+        WithVolatile withVolatile = new WithVolatile();
+        new Thread(() -> {
+            for(int i = 0; i < 10; i ++) {
+                withVolatile.add(new Object());
+                System.out.println("add " + i);
+                /*try {
+                    TimeUnit.SECONDS.sleep(1);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }*/
+            }
+        }, "t1").start();
+
+        new Thread(() -> {
+            while(true) {
+                if(withVolatile.size() == 5) {
+                    break;
+                }
+            }
+            System.out.println("t2 结束");
+        }, "t2").start();
+    }
 }

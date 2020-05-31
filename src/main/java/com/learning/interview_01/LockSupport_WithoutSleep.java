@@ -1,5 +1,10 @@
 package com.learning.interview_01;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.LockSupport;
+
 /**
  * 曾经的面试题：（淘宝？）
  *  * 实现一个容器，提供两个方法，add，size
@@ -25,4 +30,47 @@ package com.learning.interview_01;
  *  * 这时应该考虑countdownlatch/cyclicbarrier/semaphore
  */
 public class LockSupport_WithoutSleep {
+
+    //添加volatile，使t2能够得到通知
+    volatile List list = new ArrayList<>();
+
+    public void add(Object o) {
+        list.add(o);
+    }
+
+    public int size() {
+        return list.size();
+    }
+
+    static Thread t1 = null, t2 = null;
+
+    public static void main(String[] args) {
+        LockSupport_WithoutSleep lockSupport_withoutSleep = new LockSupport_WithoutSleep();
+        t2 = new Thread(() -> {
+            System.out.println("t2启动");
+            if (lockSupport_withoutSleep.size() != 5) {
+                LockSupport.park();
+            }
+            System.out.println("t2 结束");
+            LockSupport.unpark(t1);
+        }, "t2");
+        t2.start();
+
+        t1 = new Thread(() -> {
+            for (int i = 0; i < 10; i++) {
+                if (i == 5) {
+                    LockSupport.unpark(t2);
+                    LockSupport.park();
+                }
+                /*try {
+                    TimeUnit.SECONDS.sleep(1);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }*/
+                lockSupport_withoutSleep.add(new Object());
+                System.out.println("add " + i);
+            }
+        }, "t1");
+        t1.start();
+    }
 }
